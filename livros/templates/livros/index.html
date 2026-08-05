@@ -1,0 +1,10 @@
+{% extends 'livros/base.html' %}
+{% block content %}
+<div class="p-5 mb-4 bg-white rounded-3 shadow-sm text-center">
+    <div class="container-fluid py-5">
+        <h1 class="display-5 fw-bold text-dark">Bem-vindo à Biblioteca Escolar Aprender Mais</h1>
+        <p class="col-md-8 fs-4 mx-auto text-muted">Facilitando o acesso ao conhecimento, organizando o nosso acervo e conectando alunos aos livros de forma rápida e segura.</p>
+        <a class="btn btn-primary btn-lg mt-3" href="{% url 'lista_livros' %}" role="button">Consultar Acervo</a>
+    </div>
+</div>
+{% endblock %}
