@@ -1,0 +1,39 @@
+{% extends 'livros/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm p-4">
+            <h2 class="mb-3 text-primary">Solicitar Empréstimo de Livro</h2>
+            
+            {% if erro %}
+                <div class="alert alert-danger" role="alert">
+                    {{ erro }}
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Seu Nome Completo</label>
+                    <input type="text" name="nome_solicitante" class="form-control" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Selecione o Livro Disponível</label>
+                    <select name="livro_id" class="form-select" required>
+                        <option value="">-- Escolha um livro --</option>
+                        {% for livro in livros_disponiveis %}
+                            <option value="{{ livro.id }}">{{ livro.titulo }} (Disponíveis: {{ livro.quantidade_exemplares }})</option>
+                        {% empty %}
+                            <option value="" disabled>Nenhum livro disponível no momento</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-success">Confirmar Empréstimo</button>
+                <a href="{% url 'lista_livros' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
