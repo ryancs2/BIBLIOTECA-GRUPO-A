@@ -1,0 +1,52 @@
+{% extends 'livros/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-sm p-4 mb-4">
+            <h2 class="mb-3 text-primary">Consultar Histórico de Empréstimos</h2>
+            <form method="GET" class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" name="cpf" class="form-control" placeholder="Digite seu CPF para buscar..." value="{{ cpf|default:'' }}" required>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">Buscar Histórico</button>
+                </div>
+            </form>
+        </div>
+
+        {% if cpf %}
+            <div class="card shadow-sm p-4 mb-4">
+                <h4 class="text-dark">Livros com você atualmente (Empréstimos Ativos)</h4>
+                <ul class="list-group mb-3">
+                    {% for item in emprestimos_ativos %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ item.livro.titulo }}</strong> - Autor: {{ item.livro.autor }} <br>
+                                <small class="text-muted">Solicitado em: {{ item.data_emprestimo }}</small>
+                            </div>
+                            <span class="badge bg-warning text-dark">Com o Leitor</span>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item text-muted">Nenhum livro pendente com este CPF.</li>
+                    {% endfor %}
+                </ul>
+
+                <h4 class="text-dark mt-4">Livros já devolvidos (Histórico)</h4>
+                <ul class="list-group">
+                    {% for item in emprestimos_devolvidos %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ item.livro.titulo }}</strong> - Autor: {{ item.livro.autor }} <br>
+                                <small class="text-muted">Solicitado em: {{ item.data_emprestimo }}</small>
+                            </div>
+                            <span class="badge bg-secondary">Devolvido</span>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item text-muted">Nenhum histórico de devolução encontrado.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

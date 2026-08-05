@@ -1,36 +1,66 @@
 {% extends 'livros/base.html' %}
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-6">
+    <div class="col-md-8">
         <div class="card shadow-sm p-4">
             <h2 class="mb-3 text-primary">Solicitar Empréstimo de Livro</h2>
             
             {% if erro %}
-                <div class="alert alert-danger" role="alert">
-                    {{ erro }}
-                </div>
+                <div class="alert alert-danger" role="alert">{{ erro }}</div>
             {% endif %}
 
             <form method="POST">
                 {% csrf_token %}
-                <div class="mb-3">
-                    <label class="form-label">Seu Nome Completo</label>
-                    <input type="text" name="nome_solicitante" class="form-control" required>
+                <div class="row">
+                    <div class="mb-3 col-md-12">
+                        <label class="form-label">Selecione o Livro Disponível</label>
+                        <select name="livro_id" class="form-select" required>
+                            <option value="">-- Escolha um livro --</option>
+                            {% for livro in livros_disponiveis %}
+                                <option value="{{ livro.id }}">{{ livro.titulo }} (Disponíveis: {{ livro.quantidade_exemplares }})</option>
+                            {% empty %}
+                                <option value="" disabled>Nenhum livro disponível no momento</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3 col-md-12">
+                        <label class="form-label">Nome Completo</label>
+                        <input type="text" name="nome_completo" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3 col-md-6">
+                        <label class="form-label">CPF</label>
+                        <input type="text" name="cpf" class="form-control" placeholder="000.000.000-00" required>
+                    </div>
+
+                    <div class="mb-3 col-md-6">
+                        <label class="form-label">RG</label>
+                        <input type="text" name="rg" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3 col-md-12">
+                        <label class="form-label">Endereço</label>
+                        <input type="text" name="endereco" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3 col-md-6">
+                        <label class="form-label">E-mail</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3 col-md-6">
+                        <label class="form-label">Telefone de Contato</label>
+                        <input type="text" name="telefone" class="form-control" placeholder="(00) 00000-0000" required>
+                    </div>
+
+                    <div class="mb-3 col-md-12">
+                        <label class="form-label">Observação (Opcional)</label>
+                        <textarea name="observacao" class="form-control" rows="3"></textarea>
+                    </div>
                 </div>
                 
-                <div class="mb-3">
-                    <label class="form-label">Selecione o Livro Disponível</label>
-                    <select name="livro_id" class="form-select" required>
-                        <option value="">-- Escolha um livro --</option>
-                        {% for livro in livros_disponiveis %}
-                            <option value="{{ livro.id }}">{{ livro.titulo }} (Disponíveis: {{ livro.quantidade_exemplares }})</option>
-                        {% empty %}
-                            <option value="" disabled>Nenhum livro disponível no momento</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <button type="submit" class="btn btn-success">Confirmar Empréstimo</button>
+                <button type="submit" class="btn btn-success">Confirmar Solicitação</button>
                 <a href="{% url 'lista_livros' %}" class="btn btn-secondary">Cancelar</a>
             </form>
         </div>

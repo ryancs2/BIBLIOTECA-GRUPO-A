@@ -26,15 +26,21 @@ def solicitar_emprestimo(request):
     erro = None
     
     if request.method == 'POST':
-        nome_solicitante = request.POST.get('nome_solicitante')
         livro_id = request.POST.get('livro_id')
-        
         livro = get_object_or_404(Livro, id=livro_id)
         
         if livro.quantidade_exemplares > 0 and livro.disponivel:
-            # Cria o registro do empréstimo
-            Emprestimo.objects.create(livro=livro, nome_solicitante=nome_solicitante)
-            # Atualiza a quantidade e disponibilidade
+            Emprestimo.objects.create(
+                livro=livro,
+                nome_completo=request.POST.get('nome_completo'),
+                cpf=request.POST.get('cpf'),
+                rg=request.POST.get('rg'),
+                endereco=request.POST.get('endereco'),
+                email=request.POST.get('email'),
+                telefone=request.POST.get('telefone'),
+                observacao=request.POST.get('observacao')
+            )
+            
             livro.quantidade_exemplares -= 1
             if livro.quantidade_exemplares == 0:
                 livro.disponivel = False
@@ -46,4 +52,19 @@ def solicitar_emprestimo(request):
     return render(request, 'livros/emprestimo_form.html', {
         'livros_disponiveis': livros_disponiveis,
         'erro': erro
+    })
+
+def historico_usuario(request):
+    cpf = request.GET.get('cpf')
+    emprestimos_ativos = []
+    emprestimos_devolvidos = []
+    
+    if cpf:
+        emprestimos_ativos = Emprestimo.objects.filter(cpf=cpf, devolvido=False)
+        emprestimos_devolvidos = Emprestimo.objects.filter(cpf=cpf, devolvido=True)
+        
+    return render(request, 'livros/historico.html', {
+        'emprestimos_ativos': emprestimos_ativos,
+        'emprestimos_devolvidos': emprestimos_devolvidos,
+        'cpf': cpf
     })
