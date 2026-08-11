@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Livro, Emprestimo
+from .models import Livro, Emprestimo, MensagemSuporte
+import requests
 
 def index(request):
     return render(request, 'livros/index.html')
@@ -68,3 +69,64 @@ def historico_usuario(request):
         'emprestimos_devolvidos': emprestimos_devolvidos,
         'cpf': cpf
     })
+
+def buscar_livro_api(request):
+    resultados = []
+    query = request.GET.get('q')
+
+    if query:
+        url = f"https://openlibrary.org/search.json?q={query}&limit=12"
+    else:
+        url = "https://openlibrary.org/search.json?q=subject:fiction&sort=random&limit=12"
+
+    resp = requests.get(url).json()
+    for item in resp.get('docs', []):
+        capa_id = item.get('cover_i')
+        resultados.append({
+            'titulo': item.get('title', ''),
+            'autor': ', '.join(item.get('author_name', [])),
+            'editora': ', '.join(item.get('publisher', [])[:1]) if item.get('publisher') else '',
+            'ano': item.get('first_publish_year', ''),
+            'capa': f"https://covers.openlibrary.org/b/id/{capa_id}-M.jpg" if capa_id else '',
+        })
+    return render(request, 'livros/buscar_api.html', {'resultados': resultados, 'query': query})
+
+def cadastrar_via_api(request):
+    if request.method == 'POST':
+        Livro.objects.create(
+            titulo=request.POST.get('titulo'),
+            autor=request.POST.get('autor') or 'Desconhecido',
+            editora=request.POST.get('editora') or 'Desconhecida',
+            ano_publicacao=request.POST.get('ano') or 0,
+            quantidade_exemplares=1,
+            disponivel=True
+        )
+        return redirect('lista_livros')
+    return redirect('buscar_livro_api')
+
+def suporte(request):
+    sucesso = False
+    if request.method == 'POST':
+        MensagemSuporte.objects.create(
+            nome=request.POST.get('nome'),
+            email=request.POST.get('email'),
+            mensagem=request.POST.get('mensagem')
+        )
+        sucesso = True
+    return render(request, 'livros/suporte.html', {'sucesso': sucesso})
+
+def devolver_livro(request, emprestimo_id):
+    emprestimo = get_object_or_404(Emprestimo, id=emprestimo_id, devolvido=False)
+
+    if request.method == 'POST':
+        emprestimo.devolvido = True
+        emprestimo.save()
+
+        livro = emprestimo.livro
+        livro.quantidade_exemplares += 1
+        livro.disponivel = True
+        livro.save()
+
+        return redirect('historico_usuario')
+
+    return render(request, 'livros/devolver.html', {'emprestimo': emprestimo})

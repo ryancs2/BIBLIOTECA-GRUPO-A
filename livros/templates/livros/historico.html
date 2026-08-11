@@ -24,7 +24,10 @@
                                 <strong>{{ item.livro.titulo }}</strong> - Autor: {{ item.livro.autor }} <br>
                                 <small class="text-muted">Solicitado em: {{ item.data_emprestimo }}</small>
                             </div>
-                            <span class="badge bg-warning text-dark">Com o Leitor</span>
+                            <div>
+                                <span class="badge bg-warning text-dark me-2">Com o Leitor</span>
+                                <a href="{% url 'devolver_livro' item.id %}" class="btn btn-sm btn-outline-success">Devolver</a>
+                            </div>
                         </li>
                     {% empty %}
                         <li class="list-group-item text-muted">Nenhum livro pendente com este CPF.</li>
