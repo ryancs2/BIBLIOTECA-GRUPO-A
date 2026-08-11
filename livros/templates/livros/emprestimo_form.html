@@ -4,12 +4,12 @@
     <div class="col-md-8">
         <div class="card shadow-sm p-4">
             <h2 class="mb-3 text-primary">Solicitar Empréstimo de Livro</h2>
-            
+
             {% if erro %}
                 <div class="alert alert-danger" role="alert">{{ erro }}</div>
             {% endif %}
 
-            <form method="POST">
+            <form method="POST" id="form-emprestimo" novalidate>
                 {% csrf_token %}
                 <div class="row">
                     <div class="mb-3 col-md-12">
@@ -29,14 +29,19 @@
                         <input type="text" name="nome_completo" class="form-control" required>
                     </div>
 
+                    <div class="col-md-12 mb-1">
+                        <small class="text-muted">Informe pelo menos um dos documentos abaixo (CPF ou RG).</small>
+                    </div>
+
                     <div class="mb-3 col-md-6">
                         <label class="form-label">CPF</label>
-                        <input type="text" name="cpf" class="form-control" placeholder="000.000.000-00" required>
+                        <input type="text" name="cpf" id="cpf" class="form-control" placeholder="000.000.000-00">
+                        <div class="invalid-feedback" id="doc-erro">Informe pelo menos o CPF ou o RG.</div>
                     </div>
 
                     <div class="mb-3 col-md-6">
                         <label class="form-label">RG</label>
-                        <input type="text" name="rg" class="form-control" required>
+                        <input type="text" name="rg" id="rg" class="form-control">
                     </div>
 
                     <div class="mb-3 col-md-12">
@@ -59,11 +64,45 @@
                         <textarea name="observacao" class="form-control" rows="3"></textarea>
                     </div>
                 </div>
-                
+
                 <button type="submit" class="btn btn-success">Confirmar Solicitação</button>
                 <a href="{% url 'lista_livros' %}" class="btn btn-secondary">Cancelar</a>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('form-emprestimo').addEventListener('submit', function (e) {
+    const cpf = document.getElementById('cpf');
+    const rg = document.getElementById('rg');
+
+    const cpfVazio = cpf.value.trim() === '';
+    const rgVazio = rg.value.trim() === '';
+
+    if (cpfVazio && rgVazio) {
+        e.preventDefault();
+        cpf.classList.add('is-invalid');
+        rg.classList.add('is-invalid');
+        cpf.focus();
+    } else {
+        cpf.classList.remove('is-invalid');
+        rg.classList.remove('is-invalid');
+    }
+
+    // Também aplica os checks nativos do navegador (nome, email, etc.)
+    if (!this.checkValidity()) {
+        e.preventDefault();
+        this.classList.add('was-validated');
+    }
+});
+
+// Remove o erro visual assim que a pessoa começar a digitar em qualquer um dos dois
+['cpf', 'rg'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', function () {
+        document.getElementById('cpf').classList.remove('is-invalid');
+        document.getElementById('rg').classList.remove('is-invalid');
+    });
+});
+</script>
 {% endblock %}

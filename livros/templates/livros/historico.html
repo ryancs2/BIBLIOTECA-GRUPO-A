@@ -6,7 +6,10 @@
             <h2 class="mb-3 text-primary">Consultar Histórico de Empréstimos</h2>
             <form method="GET" class="row g-3">
                 <div class="col-md-8">
-                    <input type="text" name="cpf" class="form-control" placeholder="Digite seu CPF para buscar..." value="{{ cpf|default:'' }}" required>
+                    <input type="text" name="cpf" class="form-control" placeholder="Digite seu CPF para buscar..."
+                           value="{{ cpf|default:'' }}"
+                           pattern="\d{3}\.\d{3}\.\d{3}-\d{2}"
+                           title="Formato esperado: 000.000.000-00" required>
                 </div>
                 <div class="col-md-4">
                     <button type="submit" class="btn btn-primary w-100">Buscar Histórico</button>

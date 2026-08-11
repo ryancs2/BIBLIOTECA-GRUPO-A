@@ -10,6 +10,15 @@
         </div>
     </div>
 
+    <form method="GET" class="row g-2 mb-3">
+        <div class="col-md-8">
+            <input type="text" name="q" class="form-control" placeholder="Buscar por título..." value="{{ query }}">
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-primary w-100">Buscar</button>
+        </div>
+    </form>
+
     <div class="card shadow-sm">
         <div class="card-body">
             <table class="table table-striped align-middle">
@@ -41,11 +50,37 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">Nenhum livro cadastrado no sistema.</td>
+                        <td colspan="6" class="text-center text-muted py-4">Nenhum livro encontrado.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+
+            {% if livros.has_other_pages %}
+            <nav aria-label="Paginação do acervo">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if livros.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ livros.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">&laquo; Anterior</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&laquo; Anterior</span></li>
+                    {% endif %}
+
+                    <li class="page-item disabled">
+                        <span class="page-link">Página {{ livros.number }} de {{ livros.paginator.num_pages }}</span>
+                    </li>
+
+                    {% if livros.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ livros.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Próxima &raquo;</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Próxima &raquo;</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
         </div>
     </div>
 </div>
