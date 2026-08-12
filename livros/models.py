@@ -23,6 +23,10 @@ class Emprestimo(models.Model):
     data_emprestimo = models.DateField(auto_now_add=True, verbose_name="Data da Solicitação")
     devolvido = models.BooleanField(default=False, verbose_name="Devolvido")
 
+    def __str__(self):
+        return f"Empréstimo de {self.livro.titulo} para {self.nome_completo}"
+
+
 class MensagemSuporte(models.Model):
     nome = models.CharField(max_length=150, verbose_name="Nome")
     email = models.EmailField(verbose_name="E-mail")
@@ -31,5 +35,3 @@ class MensagemSuporte(models.Model):
 
     def __str__(self):
         return f"{self.nome} - {self.data_envio.strftime('%d/%m/%Y')}"
-    def __str__(self):
-        return f"Empréstimo de {self.livro.titulo} para {self.nome_completo}"

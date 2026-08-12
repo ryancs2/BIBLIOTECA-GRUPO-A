@@ -27,5 +27,9 @@ class EmprestimoAdmin(admin.ModelAdmin):
 
 @admin.register(MensagemSuporte)
 class MensagemSuporteAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nome', 'email', 'data_envio')
+    list_display = ('id', 'nome', 'email', 'data_envio', 'mensagem_resumida')
     search_fields = ('nome', 'email')
+
+    def mensagem_resumida(self, obj):
+        return obj.mensagem[:300] + '...' if len(obj.mensagem) > 300 else obj.mensagem
+    mensagem_resumida.short_description = 'Mensagem'
