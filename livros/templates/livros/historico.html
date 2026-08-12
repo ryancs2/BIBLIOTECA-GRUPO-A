@@ -26,6 +26,10 @@
                             </div>
                             <div>
                                 <span class="badge bg-warning text-dark me-2">Com o Leitor</span>
+                                <form action="{% url 'devolver_livro' item.id %}" method="POST" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-success">Devolver</button>
+                                </form>
                             </div>
                         </li>
                     {% empty %}
