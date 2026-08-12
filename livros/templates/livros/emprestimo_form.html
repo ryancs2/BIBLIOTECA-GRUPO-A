@@ -4,12 +4,12 @@
     <div class="col-md-8">
         <div class="card shadow-sm p-4">
             <h2 class="mb-3 text-primary">Solicitar Empréstimo de Livro</h2>
-            
+
             {% if erro %}
-                <div class="alert alert-danger" role="alert">{{ erro }}</div>
+            <div class="alert alert-danger" role="alert">{{ erro }}</div>
             {% endif %}
 
-            <form method="POST">
+            <form method="POST" id="form-emprestimo" novalidate>
                 {% csrf_token %}
                 <div class="row">
                     <div class="mb-3 col-md-12">
@@ -17,9 +17,10 @@
                         <select name="livro_id" class="form-select" required>
                             <option value="">-- Escolha um livro --</option>
                             {% for livro in livros_disponiveis %}
-                                <option value="{{ livro.id }}">{{ livro.titulo }} (Disponíveis: {{ livro.quantidade_exemplares }})</option>
+                            <option value="{{ livro.id }}">{{ livro.titulo }} (Disponíveis: {{
+                                livro.quantidade_exemplares }})</option>
                             {% empty %}
-                                <option value="" disabled>Nenhum livro disponível no momento</option>
+                            <option value="" disabled>Nenhum livro disponível no momento</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -29,14 +30,19 @@
                         <input type="text" name="nome_completo" class="form-control" required>
                     </div>
 
+                    <div class="col-md-12 mb-1">
+                        <small class="text-muted">Informe pelo menos um dos documentos abaixo (CPF ou RG).</small>
+                    </div>
                     <div class="mb-3 col-md-6">
                         <label class="form-label">CPF</label>
-                        <input type="text" name="cpf" class="form-control" placeholder="000.000.000-00" required>
+                        <input type="text" name="cpf" id="cpf" class="form-control" placeholder="000.000.000-00"
+                            inputmode="numeric" maxlength="14">
+                        <div class="invalid-feedback" id="doc-erro">Informe pelo menos o CPF ou o RG.</div>
                     </div>
 
                     <div class="mb-3 col-md-6">
                         <label class="form-label">RG</label>
-                        <input type="text" name="rg" class="form-control" required>
+                        <input type="text" name="rg" id="rg" class="form-control" inputmode="numeric" maxlength="12">
                     </div>
 
                     <div class="mb-3 col-md-12">
@@ -51,7 +57,8 @@
 
                     <div class="mb-3 col-md-6">
                         <label class="form-label">Telefone de Contato</label>
-                        <input type="text" name="telefone" class="form-control" placeholder="(00) 00000-0000" required>
+                        <input type="text" name="telefone" id="telefone" class="form-control"
+                            placeholder="(00) 00000-0000" inputmode="numeric" maxlength="11" required>
                     </div>
 
                     <div class="mb-3 col-md-12">
@@ -59,11 +66,75 @@
                         <textarea name="observacao" class="form-control" rows="3"></textarea>
                     </div>
                 </div>
-                
+
                 <button type="submit" class="btn btn-success">Confirmar Solicitação</button>
                 <a href="{% url 'lista_livros' %}" class="btn btn-secondary">Cancelar</a>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+    // Permite digitar apenas números nos campos CPF, RG e Telefone
+function permitirApenasNumeros(id) {
+    const campo = document.getElementById(id);
+    if (!campo) return;
+
+    campo.addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, ''); // remove tudo que não é dígito
+    });
+
+    // Bloqueia colar texto com letras
+    campo.addEventListener('paste', function (e) {
+        e.preventDefault();
+        const texto = (e.clipboardData || window.clipboardData).getData('text');
+        const apenasNumeros = texto.replace(/\D/g, '');
+        document.execCommand('insertText', false, apenasNumeros);
+    });
+}
+
+['cpf', 'rg', 'telefone'].forEach(permitirApenasNumeros);
+    document.getElementById('form-emprestimo').addEventListener('submit', function (e) {
+        let bloquear = false;
+
+        const cpf = document.getElementById('cpf');
+        const rg = document.getElementById('rg');
+        const cpfVazio = cpf.value.trim() === '';
+        const rgVazio = rg.value.trim() === '';
+
+        if (cpfVazio && rgVazio) {
+            bloquear = true;
+            cpf.classList.add('is-invalid');
+            rg.classList.add('is-invalid');
+        } else {
+            cpf.classList.remove('is-invalid');
+            rg.classList.remove('is-invalid');
+        }
+
+        const camposObrigatorios = this.querySelectorAll('[required]');
+        camposObrigatorios.forEach(function (campo) {
+            if (!campo.checkValidity()) {
+                bloquear = true;
+                campo.classList.add('is-invalid');
+            } else {
+                campo.classList.remove('is-invalid');
+            }
+        });
+
+        if (bloquear) {
+            e.preventDefault();
+            const primeiroInvalido = this.querySelector('.is-invalid');
+            if (primeiroInvalido) primeiroInvalido.focus();
+        }
+    });
+
+    document.querySelectorAll('#form-emprestimo input, #form-emprestimo select, #form-emprestimo textarea').forEach(function (campo) {
+        campo.addEventListener('input', function () {
+            this.classList.remove('is-invalid');
+        });
+        campo.addEventListener('change', function () {
+            this.classList.remove('is-invalid');
+        });
+    });
+</script>
 {% endblock %}
