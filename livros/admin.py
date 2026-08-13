@@ -29,3 +29,5 @@ class EmprestimoAdmin(admin.ModelAdmin):
 class MensagemSuporteAdmin(admin.ModelAdmin):
     list_display = ('id', 'nome', 'email', 'data_envio')
     search_fields = ('nome', 'email')
+
+    def mensa
