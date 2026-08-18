@@ -22,39 +22,26 @@ def lista_livros(request):
         livros = Livro.objects.all()
     return render(request, 'livros/lista.html', {'livros': livros})
 
-import re
-
 def solicitar_emprestimo(request):
     livros_disponiveis = Livro.objects.filter(disponivel=True, quantidade_exemplares__gt=0)
     erro = None
-
+    
     if request.method == 'POST':
-        cpf = re.sub(r'\D', '', request.POST.get('cpf') or '')
-        rg = re.sub(r'\D', '', request.POST.get('rg') or '')
-        telefone = re.sub(r'\D', '', request.POST.get('telefone') or '')
-
-        if not cpf and not rg:
-            erro = "Informe pelo menos o CPF ou o RG."
-            return render(request, 'livros/emprestimo_form.html', {
-                'livros_disponiveis': livros_disponiveis,
-                'erro': erro
-            })
-
         livro_id = request.POST.get('livro_id')
         livro = get_object_or_404(Livro, id=livro_id)
-
+        
         if livro.quantidade_exemplares > 0 and livro.disponivel:
             Emprestimo.objects.create(
                 livro=livro,
                 nome_completo=request.POST.get('nome_completo'),
-                cpf=cpf,
-                rg=rg,
+                cpf=request.POST.get('cpf'),
+                rg=request.POST.get('rg'),
                 endereco=request.POST.get('endereco'),
                 email=request.POST.get('email'),
-                telefone=telefone,
+                telefone=request.POST.get('telefone'),
                 observacao=request.POST.get('observacao')
             )
-
+            
             livro.quantidade_exemplares -= 1
             if livro.quantidade_exemplares == 0:
                 livro.disponivel = False
@@ -62,7 +49,7 @@ def solicitar_emprestimo(request):
             return redirect('lista_livros')
         else:
             erro = "Desculpe, este livro não está disponível no momento."
-
+            
     return render(request, 'livros/emprestimo_form.html', {
         'livros_disponiveis': livros_disponiveis,
         'erro': erro
