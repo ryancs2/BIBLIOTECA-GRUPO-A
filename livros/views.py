@@ -1,18 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Livro, Emprestimo, MensagemSuporte
+from .models import Livro, Pessoa, Emprestimo, MensagemSuporte
 import requests
+from django.contrib import messages
 
 def index(request):
     return render(request, 'livros/index.html')
 
 def quem_somos(request):
     return render(request, 'livros/quem_somos.html')
-
-def suporte(request):
-    sucesso = False
-    if request.method == 'POST':
-        sucesso = True
-    return render(request, 'livros/suporte.html', {'sucesso': sucesso})
 
 def lista_livros(request):
     query = request.GET.get('q')
@@ -31,14 +26,40 @@ def solicitar_emprestimo(request):
         livro = get_object_or_404(Livro, id=livro_id)
         
         if livro.quantidade_exemplares > 0 and livro.disponivel:
+            cpf = request.POST.get('cpf')
+            rg = request.POST.get('rg')
+            nome_completo = request.POST.get('nome_completo')
+
+            pessoa_existente = Pessoa.objects.filter(cpf=cpf).first()
+
+            if pessoa_existente:
+                if pessoa_existente.rg != rg or pessoa_existente.nome_completo != nome_completo:
+                    erro = "Este CPF já está cadastrado com outros dados (nome ou RG divergentes). Verifique as informações."
+                    return render(request, 'livros/emprestimo_form.html', {
+                        'livros_disponiveis': livros_disponiveis,
+                        'erro': erro
+                    })
+                pessoa = pessoa_existente
+            else:
+                if Pessoa.objects.filter(rg=rg).exists():
+                    erro = "Este RG já está cadastrado para outro CPF. Verifique as informações."
+                    return render(request, 'livros/emprestimo_form.html', {
+                        'livros_disponiveis': livros_disponiveis,
+                        'erro': erro
+                    })
+
+                pessoa = Pessoa.objects.create(
+                    cpf=cpf,
+                    rg=rg,
+                    nome_completo=nome_completo,
+                    endereco=request.POST.get('endereco'),
+                    email=request.POST.get('email'),
+                    telefone=request.POST.get('telefone'),
+                )
+
             Emprestimo.objects.create(
                 livro=livro,
-                nome_completo=request.POST.get('nome_completo'),
-                cpf=request.POST.get('cpf'),
-                rg=request.POST.get('rg'),
-                endereco=request.POST.get('endereco'),
-                email=request.POST.get('email'),
-                telefone=request.POST.get('telefone'),
+                pessoa=pessoa,
                 observacao=request.POST.get('observacao')
             )
             
@@ -46,6 +67,11 @@ def solicitar_emprestimo(request):
             if livro.quantidade_exemplares == 0:
                 livro.disponivel = False
             livro.save()
+
+            messages.success(
+                request,
+                f"Empréstimo solicitado com sucesso! Sua matrícula é: {pessoa.matricula}. Guarde este número para futuras consultas."
+            )
             return redirect('lista_livros')
         else:
             erro = "Desculpe, este livro não está disponível no momento."
@@ -56,18 +82,28 @@ def solicitar_emprestimo(request):
     })
 
 def historico_usuario(request):
-    cpf = request.GET.get('cpf')
+    busca = request.GET.get('busca', '').strip()
     emprestimos_ativos = []
     emprestimos_devolvidos = []
-    
-    if cpf:
-        emprestimos_ativos = Emprestimo.objects.filter(cpf=cpf, devolvido=False)
-        emprestimos_devolvidos = Emprestimo.objects.filter(cpf=cpf, devolvido=True)
-        
+    pessoa = None
+    erro = None
+
+    if busca:
+        pessoa = Pessoa.objects.filter(matricula__iexact=busca).first() or \
+                 Pessoa.objects.filter(cpf=busca).first()
+
+        if pessoa:
+            emprestimos_ativos = Emprestimo.objects.filter(pessoa=pessoa, devolvido=False)
+            emprestimos_devolvidos = Emprestimo.objects.filter(pessoa=pessoa, devolvido=True)
+        else:
+            erro = "Nenhum cadastro encontrado com o CPF ou matrícula informado."
+
     return render(request, 'livros/historico.html', {
         'emprestimos_ativos': emprestimos_ativos,
         'emprestimos_devolvidos': emprestimos_devolvidos,
-        'cpf': cpf
+        'pessoa': pessoa,
+        'busca': busca,
+        'erro': erro,
     })
 
 def buscar_livro_api(request):
