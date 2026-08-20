@@ -1,0 +1,16 @@
+{% extends 'livros/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm p-4">
+            <h2 class="mb-3 text-primary">Confirmar Devolução</h2>
+            <p>Confirma a devolução do livro <strong>{{ emprestimo.livro.titulo }}</strong>, emprestado para <strong>{{ emprestimo.nome_completo }}</strong>?</p>
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">Confirmar Devolução</button>
+                <a href="{% url 'historico_usuario' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
